@@ -24,11 +24,20 @@ Went chart by chart — revenue vs. cash collected, cash balance over time, expe
 - That gap wasn't really an operations problem, it came from things like tax payments and owner withdrawals that never show up in "operating expenses" at all.
 - ARIMA beat SARIMA on both a single holdout test and cross-validation, which taught me that a fancier model isn't automatically a better one, especially with limited data.
 
-## What I'd do differently next time
+## Feature Engineering & Models
 
-- Try more ARIMA/SARIMA parameter combinations instead of picking one order and testing it
-- Bring in exogenous variables (like headcount or active clients) as forecasting inputs, not just revenue on its own
-- Build a simple dashboard on top of this instead of leaving it all in one notebook
+Beyond the raw columns, I built a few features to actually measure financial health instead of just eyeballing charts:
+
+- **DSO (Days Sales Outstanding)** — how many days on average it takes to collect on billed revenue
+- **Cash ratio** — how many months of operating expenses the current cash balance could cover
+- **Burn rate** — months where operating expenses outpaced cash actually collected
+
+For forecasting, I tested two models on the revenue series:
+
+- **ARIMA(1,1,1)** — a baseline that only looks at the series' own trend and momentum
+- **SARIMA(1,1,1)(1,1,0,12)** — the same thing, plus a 12-month seasonal component
+
+I evaluated both with a 6-month holdout (MAE, RMSE) and then again with 5-fold cross-validation, since one train/test split isn't really enough to trust a result. ARIMA won on both. With only 78 months of training data, SARIMA's seasonal term didn't have enough repeated yearly cycles to learn a reliable pattern, so it ended up overfitting to noise instead.
 
 ## Tools
 
